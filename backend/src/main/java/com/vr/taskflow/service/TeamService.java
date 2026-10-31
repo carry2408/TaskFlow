@@ -75,7 +75,10 @@ public class TeamService {
 
     @Transactional(readOnly = true)
     public Page<TeamDto> getAllTeams(Pageable pageable) {
-        return teamRepository.findAll(pageable).map(teamMapper::toDto);
+        return teamRepository.findAll(pageable).map(team -> {
+            List<TeamMember> members = teamMemberRepository.findAllByTeamIdWithUser(team.getId());
+            return teamMapper.toDto(team, members);
+        });
     }
 
     @Transactional
