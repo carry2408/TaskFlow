@@ -27,6 +27,7 @@ export const projectsApi = {
   getById: (id) => api.get(`/projects/${id}`),
   create: (data) => api.post('/projects', data),
   update: (id, data) => api.put(`/projects/${id}`, data),
+  updateStatus: (id, status) => api.patch(`/projects/${id}/status`, null, { params: { status } }),
   addMember: (projectId, userId, role) => api.post(`/projects/${projectId}/members/${userId}`, null, { params: { role } }),
   removeMember: (projectId, userId) => api.delete(`/projects/${projectId}/members/${userId}`),
 };

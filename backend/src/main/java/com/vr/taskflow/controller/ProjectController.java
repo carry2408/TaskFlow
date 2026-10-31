@@ -72,6 +72,15 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success("Project updated successfully", updated));
     }
 
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROJECT_MANAGER')")
+    @Operation(summary = "Update project status (Admin or Project Manager)")
+    public ResponseEntity<ApiResponse<ProjectDto>> updateProjectStatus(@PathVariable Long id,
+                                                                       @RequestParam ProjectStatus status) {
+        ProjectDto updated = projectService.updateProjectStatus(id, status);
+        return ResponseEntity.ok(ApiResponse.success("Project status updated successfully", updated));
+    }
+
     @PostMapping("/{id}/members/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PROJECT_MANAGER')")
     @Operation(summary = "Add member to project")

@@ -9,6 +9,7 @@ import { Button, Input, Select, Modal, Avatar, EmptyState, Skeleton } from '../c
 export function ProjectsPage() {
   const { hasRole, user } = useAuth();
   const { addToast } = useToast();
+  const canManageProjects = hasRole('ADMIN') || hasRole('PROJECT_MANAGER');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -87,6 +88,18 @@ export function ProjectsPage() {
       loadProjects();
     } catch (err) {
       addToast(err.message || 'Failed to create project', 'error');
+    }
+  };
+
+  const handleStatusChange = async (projectId, newStatus) => {
+    try {
+      await projectsApi.updateStatus(projectId, newStatus);
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? { ...p, status: newStatus } : p))
+      );
+      addToast('Project status updated successfully', 'success');
+    } catch (err) {
+      addToast(err.message || 'Failed to update project status', 'error');
     }
   };
 
@@ -176,9 +189,36 @@ export function ProjectsPage() {
                     {p.projectKey}
                   </td>
                   <td className="py-3 px-4">
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-surface-muted text-gray-300 border border-surface-border">
-                      {p.status}
-                    </span>
+                    {canManageProjects ? (
+                      <select
+                        value={p.status}
+                        onChange={(e) => handleStatusChange(p.id, e.target.value)}
+                        className={`text-[11px] font-medium px-2 py-1 rounded bg-surface-card border cursor-pointer focus:outline-none focus:border-brand-500 transition-colors ${
+                          p.status === 'ACTIVE'
+                            ? 'text-emerald-400 border-emerald-800/60 bg-emerald-950/40'
+                            : p.status === 'DRAFT'
+                            ? 'text-amber-300 border-amber-800/60 bg-amber-950/40'
+                            : 'text-gray-400 border-surface-border bg-surface-muted'
+                        }`}
+                        title="Change project status"
+                      >
+                        <option value="ACTIVE" className="bg-surface text-gray-200">ACTIVE</option>
+                        <option value="DRAFT" className="bg-surface text-gray-200">DRAFT</option>
+                        <option value="ARCHIVED" className="bg-surface text-gray-200">ARCHIVED</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded border ${
+                          p.status === 'ACTIVE'
+                            ? 'text-emerald-400 border-emerald-800/60 bg-emerald-950/40'
+                            : p.status === 'DRAFT'
+                            ? 'text-amber-300 border-amber-800/60 bg-amber-950/40'
+                            : 'text-gray-400 border-surface-border bg-surface-muted'
+                        }`}
+                      >
+                        {p.status}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3 px-4">
                     {p.leadUser ? (

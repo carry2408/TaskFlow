@@ -134,6 +134,17 @@ public class ProjectService {
     }
 
     @Transactional
+    public ProjectDto updateProjectStatus(Long projectId, ProjectStatus status) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.PROJECT_NOT_FOUND));
+
+        project.setStatus(status);
+        Project updated = projectRepository.save(project);
+        List<ProjectMember> members = projectMemberRepository.findAllByProjectIdWithUser(projectId);
+        return projectMapper.toDto(updated, members);
+    }
+
+    @Transactional
     public void addMember(Long projectId, Long userId, String roleInProject) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.PROJECT_NOT_FOUND));

@@ -11,6 +11,7 @@ export function ProjectDetailPage() {
   const { id } = useParams();
   const { hasRole } = useAuth();
   const { addToast } = useToast();
+  const canManageProjects = hasRole('ADMIN') || hasRole('PROJECT_MANAGER');
 
   const [project, setProject] = useState(null);
   const [issues, setIssues] = useState([]);
@@ -84,6 +85,16 @@ export function ProjectDetailPage() {
     }
   };
 
+  const handleStatusChange = async (newStatus) => {
+    try {
+      await projectsApi.updateStatus(id, newStatus);
+      setProject((prev) => ({ ...prev, status: newStatus }));
+      addToast('Project status updated successfully', 'success');
+    } catch (err) {
+      addToast(err.message || 'Failed to update project status', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4 max-w-7xl mx-auto">
@@ -114,9 +125,36 @@ export function ProjectDetailPage() {
               <span className="font-mono text-xs px-2 py-0.5 rounded bg-surface-muted border border-surface-border text-gray-300 font-semibold">
                 {project.projectKey}
               </span>
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-surface-card border border-surface-border text-gray-400">
-                {project.status}
-              </span>
+              {canManageProjects ? (
+                <select
+                  value={project.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  className={`text-[11px] font-medium px-2 py-0.5 rounded bg-surface-card border cursor-pointer focus:outline-none focus:border-brand-500 transition-colors ${
+                    project.status === 'ACTIVE'
+                      ? 'text-emerald-400 border-emerald-800/60 bg-emerald-950/40'
+                      : project.status === 'DRAFT'
+                      ? 'text-amber-300 border-amber-800/60 bg-amber-950/40'
+                      : 'text-gray-400 border-surface-border bg-surface-muted'
+                  }`}
+                  title="Change project status"
+                >
+                  <option value="ACTIVE" className="bg-surface text-gray-200">ACTIVE</option>
+                  <option value="DRAFT" className="bg-surface text-gray-200">DRAFT</option>
+                  <option value="ARCHIVED" className="bg-surface text-gray-200">ARCHIVED</option>
+                </select>
+              ) : (
+                <span
+                  className={`text-[11px] font-medium px-2 py-0.5 rounded border ${
+                    project.status === 'ACTIVE'
+                      ? 'text-emerald-400 border-emerald-800/60 bg-emerald-950/40'
+                      : project.status === 'DRAFT'
+                      ? 'text-amber-300 border-amber-800/60 bg-amber-950/40'
+                      : 'text-gray-400 border-surface-border bg-surface-muted'
+                  }`}
+                >
+                  {project.status}
+                </span>
+              )}
             </div>
             {project.description && (
               <p className="text-xs text-gray-400 mt-1 max-w-2xl">{project.description}</p>
